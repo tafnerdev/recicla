@@ -1,0 +1,297 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Missão Abissal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: tela cheia de WebGL; painel de componentes à esquerda, ficha à direita, profundímetro no topo. Tema único: fundo do mar. */
+:root{
+  --abyss:#030a12; --deep:#071a2a; --panel:rgba(6,20,32,.82); --line:rgba(140,200,235,.18);
+  --fg:#e6f1f8; --dim:#8fb0c4; --mute:#5b7d93;
+  --accent:#ffb340; --red:#ff3b30; --glass:#7fd0ff; --ok:#62d59a;
+  --fis:#5ab4ff; --bio:#62d59a; --qui:#ffb340;
+  --display:"Space Grotesk",system-ui,sans-serif; --body:"Inter",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--abyss);color:var(--fg);font:14px/1.45 var(--body);overflow:hidden;
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.ui{position:fixed;z-index:5}
+.top{left:max(16px,env(safe-area-inset-left,0px));top:calc(14px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.top h1{font:700 22px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.top .sub{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.gauge{right:max(16px,env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));width:272px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px)}
+.gauge label{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 10px;font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.gauge .big{font:700 30px/1 var(--display);font-variant-numeric:tabular-nums;margin:6px 0 8px}
+.gauge .big small{font:500 13px var(--mono);color:var(--dim);margin-left:4px}
+.gauge input[type=range]{width:100%;accent-color:var(--accent);margin:0 0 8px}
+.gauge .row{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-variant-numeric:tabular-nums}
+.gauge .k{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.gauge .v{font:600 14px var(--body)}
+.gauge .zone{margin-top:8px;font:500 11px var(--mono);color:var(--glass);letter-spacing:.08em}
+.list{left:max(16px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);width:238px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;backdrop-filter:blur(10px);max-height:calc(100% - 200px);overflow:auto}
+.list h2{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:4px 6px 8px}
+.list button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:var(--fg);padding:7px 8px;border-radius:9px;font:500 13px var(--body);cursor:pointer}
+.list button:hover,.list button:focus-visible{background:rgba(127,208,255,.1);outline:none}
+.list button.on{background:rgba(255,179,64,.16)}
+.n{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--glass);display:grid;place-items:center;font:600 11px var(--mono);color:var(--glass)}
+.list button.on .n{border-color:var(--accent);color:var(--accent)}
+.card{right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:360px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;backdrop-filter:blur(10px)}
+.card .eyebrow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.chip{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid}
+.chip.fis{color:var(--fis);border-color:var(--fis)}.chip.bio{color:var(--bio);border-color:var(--bio)}.chip.qui{color:var(--qui);border-color:var(--qui)}
+.card h3{font:700 19px/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+.card p{margin:0 0 8px;color:#cfe0ec}
+.card .dec{border-top:1px solid var(--line);padding-top:8px;margin-top:6px;font-size:13px;color:var(--dim)}
+.card .dec b{color:var(--fg);font-weight:600}
+.card .num{font-variant-numeric:tabular-nums;font-family:var(--mono);color:var(--accent);font-size:12.5px}
+.tag{position:fixed;z-index:4;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:rgba(6,20,32,.85);border:1.5px solid var(--glass);color:var(--glass);font:600 12px var(--mono);display:grid;place-items:center;cursor:pointer;transition:opacity .2s;pointer-events:auto}
+.tag.on{border-color:var(--accent);color:#0b0b0b;background:var(--accent);box-shadow:0 0 0 6px rgba(255,179,64,.2)}
+.hint{left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);pointer-events:none;white-space:nowrap}
+.legend{left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+@media (max-width:860px){
+  .top{top:calc(10px + env(safe-area-inset-top,0px))}
+  .top h1{font-size:18px}.top .sub{display:none}
+  .gauge{width:auto;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(44px + env(safe-area-inset-top,0px));padding:8px 12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+  .gauge label{grid-column:1/-1}.gauge .big{font-size:22px;margin:0}.gauge input[type=range]{margin:0}
+  .gauge .row{grid-column:1/-1;grid-template-columns:repeat(4,1fr);gap:4px}.gauge .k{font-size:9px}.gauge .v{font-size:12px}.gauge .zone{grid-column:1/-1;margin-top:2px;font-size:10px}
+  .list{top:calc(176px + env(safe-area-inset-top,0px));transform:none;bottom:auto;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));width:auto;max-height:none;display:flex;gap:6px;overflow-x:auto;padding:6px;background:none;border:0;backdrop-filter:none}
+  .list h2{display:none}.list button{width:auto;flex:none;padding:5px 10px 5px 5px;background:var(--panel);border:1px solid var(--line);font-size:12px;white-space:nowrap}
+  .card{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));width:auto;max-width:none;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:12px 14px;max-height:42vh;overflow:auto}
+  .card h3{font-size:16px}.card p{font-size:13px}
+  .hint,.legend{display:none}
+}
+@media (prefers-reduced-motion:reduce){.tag{transition:none}}
+</style>
+
+</head><body><canvas id="c"></canvas>
+
+<div class="ui top"><h1>Missão Abissal</h1><div class="sub">Submersível não tripulado · 4.000 m · modelo legendado</div></div>
+
+<div class="ui gauge">
+  <label for="depth"><span>Profundidade</span><span id="zone-s">superfície</span></label>
+  <div class="big"><span id="d-val">0</span><small>m</small></div>
+  <input id="depth" type="range" min="0" max="4000" step="10" value="0" aria-label="Profundidade em metros">
+  <div class="row">
+    <div><div class="k">Pressão total</div><div class="v" id="p-atm">1 atm</div></div>
+    <div><div class="k">Em pascal</div><div class="v" id="p-pa">1,0 × 10⁵ Pa</div></div>
+    <div><div class="k">Força na janela Ø10 cm</div><div class="v" id="f-win">0 kN</div></div>
+    <div><div class="k">Equivale ao peso de</div><div class="v" id="f-kg">0 kg</div></div>
+  </div>
+  <div class="zone" id="zone">Luz solar: 100%</div>
+</div>
+
+<div class="ui list" id="list"><h2>Componentes</h2></div>
+
+<div class="ui card" id="card">
+  <div class="eyebrow" id="card-chips"><span class="chip fis">Física</span></div>
+  <h3 id="card-h">Toque num componente</h3>
+  <p id="card-p">Gire o modelo arrastando. Cada número é um componente do projeto; toque nele ou na lista.</p>
+  <div class="dec" id="card-dec"></div>
+</div>
+
+<div class="ui legend"><span><i style="background:var(--fis)"></i>Física</span><span><i style="background:var(--bio)"></i>Biologia</span><span><i style="background:var(--qui)"></i>Química</span></div>
+<div class="ui hint">arraste para girar · role para aproximar</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const RHO=1030, G=10, P0=1e5, R_WIN=0.05;
+
+const COMP=[
+ {id:'casco',n:1,name:'Casco · compartimento de pressão',areas:['fis'],pos:[0.2,0.1,0.5],
+  desc:'Cilindro de liga de titânio com tampas hemisféricas, selado a 1 atm. Só o que precisa de ar seco fica aqui: eletrônica e câmera. A forma redonda distribui a pressão sem cantos que concentram esforço.',
+  dec:'<b>Decisão 1 · forma e material.</b> A 4.000 m a pressão total é <span class="num">4,13 × 10⁷ Pa ≈ 413 atm</span>. Esfera e cilindro de parede grossa resistem melhor que caixas com arestas. Coeficiente de segurança: o casco é projetado para mais que 4.000 m.'},
+ {id:'janela',n:2,name:'Janela de observação',areas:['fis'],pos:[1.72,0.05,0],
+  desc:'Vigia circular de 10 cm de diâmetro em acrílico espesso, em forma de cone, encaixada no casco. É o ponto mais frágil do compartimento, por isso é pequena.',
+  dec:'<b>Força líquida na janela a 4.000 m:</b> ΔP = 4,12 × 10⁷ Pa × área 7,85 × 10⁻³ m² = <span class="num">≈ 3,2 × 10⁵ N</span>, o peso de <span class="num">≈ 32 toneladas</span>. Por isso ela é pequena e cônica: quanto mais pressão, mais ela se aperta no encaixe.'},
+ {id:'flutuador',n:3,name:'Flutuador de espuma sintética',areas:['fis'],pos:[0,0.78,0],
+  desc:'Bloco de espuma sintética (microesferas de vidro em resina), densidade 600 kg/m³. Não esmaga sob pressão como a espuma comum, porque não tem bolhas de ar grandes.',
+  dec:'<b>Decisão 2 · flutuabilidade neutra.</b> Sem bateria o veículo afunda (850 kg contra 824 kg de água deslocada). Com a bateria de lítio, são <span class="num">0,12 m³ de espuma (≈ 72 kg)</span> para ficar neutro. Com chumbo-ácido seriam 0,32 m³: outro motivo para o lítio.'},
+ {id:'baterias',n:4,name:'Baterias de íons de lítio',areas:['qui','fis'],pos:[0,-0.5,0.32],
+  desc:'Dois cilindros cheios de óleo com as células dentro. O óleo transmite a pressão da água para dentro, então a caixa não precisa ser blindada: é compensada em pressão.',
+  dec:'<b>Decisão 3 · energia.</b> 800 W × 8 h = <span class="num">6,4 kWh</span>; com 25% de margem, <span class="num">8,0 kWh</span>. Lítio a 150 Wh/kg: <span class="num">53 kg e 13 células em série</span> para 48 V. Chumbo-ácido pesaria 229 kg e precisaria de 24 células. Nada de baterias que dependem de oxigênio do ar: não há ar no fundo.'},
+ {id:'propulsores',n:5,name:'Propulsores em duto',areas:['fis','bio'],pos:[-1.55,0.05,0.62],
+  desc:'Quatro hélices em duto: duas na traseira (avanço e giro) e duas verticais (subir, descer e manter posição). Os motores são cheios de óleo, também compensados em pressão.',
+  dec:'<b>Decisão biomimética · polvo-dumbo.</b> O <i>Grimpoteuthis</i> nada com nadadeiras lentas em vez de jato: gasta pouco e faz pouco barulho. Por isso os propulsores giram devagar e com pás largas. Limite da analogia: hélice ainda faz ruído; nadadeira de verdade não.'},
+ {id:'sensores',n:6,name:'Sensores (CTD)',areas:['fis','qui'],pos:[0.3,1.25,0],
+  desc:'Sonda que mede condutividade (salinidade), temperatura e pressão. A pressão vira a profundidade mostrada no painel; a temperatura no fundo fica entre 1 e 4 °C.',
+  dec:'<b>Dado real.</b> A pressão cresce ≈ 1 atm a cada 10 m. O sensor de pressão é a referência para o controle de profundidade e para soltar o lastro na hora certa.'},
+ {id:'anodo',n:7,name:'Ânodos de sacrifício (zinco)',areas:['qui'],pos:[-0.6,-0.1,0.52],
+  desc:'Blocos de zinco parafusados nas partes de aço. A água do mar (≈ 35 g de sal por kg) é um eletrólito: o metal mais reativo se corrói primeiro e protege o resto.',
+  dec:'<b>Decisão 4 · corrosão.</b> E°(Zn²⁺/Zn) = −0,76 V é mais negativo que E°(Fe²⁺/Fe) = −0,44 V. O zinco é o ânodo e se oxida (Zn → Zn²⁺ + 2e⁻); o ferro vira cátodo e fica protegido. Trocamos o bloco de zinco, não a estrutura.'},
+ {id:'camera',n:8,name:'Câmera e iluminação vermelha',areas:['bio'],pos:[1.6,-0.3,0],
+  desc:'Câmera 4K com dois faróis de LED. A luz é vermelha e fraca por padrão; a branca só liga para a foto. Nada de luz solar chega a 4.000 m.',
+  dec:'<b>Decisão biomimética · peixe-pescador.</b> O <i>Melanocetus</i> usa uma isca luminosa fraca porque no escuro pouca luz já basta. Animais do fundo quase não enxergam vermelho, então o veículo observa sem cegá-los nem espantá-los. Limite: luz vermelha reduz o alcance da câmera.'},
+ {id:'garrafas',n:9,name:'Garrafas de coleta de água',areas:['qui'],pos:[0.25,-0.15,0.7],
+  desc:'Duas garrafas tipo Niskin, abertas nas duas pontas durante a descida e fechadas por gatilho no fundo. Trazem água para medir salinidade e composição no laboratório.',
+  dec:'Ficam abertas na descida para a pressão interna e externa se igualarem; se fossem fechadas na superfície, seriam esmagadas como o compartimento de 1 atm.'},
+ {id:'lastro',n:10,name:'Lastro descartável',areas:['fis'],pos:[0,-0.82,0],
+  desc:'Pesos de ferro presos por eletroímãs. Com eles o veículo fica mais pesado que a água e desce sozinho; no fundo, solta metade e fica neutro; para subir, solta o resto.',
+  dec:'<b>Princípio de Arquimedes.</b> O empuxo é o peso da água deslocada (1.030 kg/m³ × volume × g). Descer e subir sem gastar bateria: só mudando o peso, não o empuxo.'},
+ {id:'trelica',n:11,name:'Treliça externa (esponja-de-vidro)',areas:['bio','fis'],pos:[0.9,0.55,-0.6],
+  desc:'Gaiola de tubos de titânio em grade quadrada com duas diagonais cruzadas, que protege o casco e sustenta os equipamentos externos.',
+  dec:'<b>Decisão biomimética · <i>Euplectella aspergillum</i>.</b> O esqueleto de sílica da esponja tem grade reforçada por diagonais duplas; em testes, resiste mais de 20% melhor à flambagem que a treliça comum, com o mesmo material (Fernandes et al., 2020). Limite: a esponja vive a 100–1.000 m e sua sílica é frágil; copiamos a geometria, não o material.'},
+ {id:'patas',n:12,name:'Patas de pouso',areas:['bio'],pos:[-1.0,-0.9,0.55],
+  desc:'Quatro hastes finas com sapatas largas, que mantêm o corpo do veículo acima da lama do fundo.',
+  dec:'<b>Decisão biomimética · pepino-do-mar.</b> O <i>Scotoplanes</i> anda sobre pés ambulacrais longos como pernas de pau, com o corpo suspenso acima do sedimento. Assim o veículo pousa sem levantar a nuvem de lama que estragaria a filmagem. Limite: nossas patas não andam.'}
+];
+
+// ---------- cena ----------
+const canvas=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,1,0.05,100);
+camera.position.set(4.2,1.6,4.6);
+const controls=new OrbitControls(camera,canvas);
+controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=2;controls.maxDistance=12;controls.maxPolarAngle=Math.PI*0.78;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+controls.autoRotate=!reduce;controls.autoRotateSpeed=.6;
+
+const sun=new THREE.DirectionalLight(0xbfe3ff,2.2);sun.position.set(3,8,2);scene.add(sun);
+const hemi=new THREE.HemisphereLight(0x6fb6e6,0x02070d,1.1);scene.add(hemi);
+const fill=new THREE.PointLight(0x7fd0ff,0.6,20);fill.position.set(-4,2,-3);scene.add(fill);
+const red1=new THREE.PointLight(0xff2a2a,0,6,2);red1.position.set(2.2,-0.3,0.3);scene.add(red1);
+const red2=new THREE.PointLight(0xff2a2a,0,6,2);red2.position.set(2.2,-0.3,-0.3);scene.add(red2);
+scene.fog=new THREE.FogExp2(0x0b3a5a,0.06);
+const work=new THREE.PointLight(0xdff3ff,1.6,30,1.2);work.position.set(0.6,0.8,0.4);camera.add(work);scene.add(camera);
+
+const ti=new THREE.MeshStandardMaterial({color:0x9aa3ad,metalness:.85,roughness:.35});
+const steel=new THREE.MeshStandardMaterial({color:0x6d7681,metalness:.9,roughness:.4});
+const dark=new THREE.MeshStandardMaterial({color:0x22262b,metalness:.6,roughness:.6});
+const foam=new THREE.MeshStandardMaterial({color:0xf2b544,roughness:.9,metalness:0});
+const oil=new THREE.MeshStandardMaterial({color:0x2f6b4f,roughness:.5,metalness:.3});
+const zinc=new THREE.MeshStandardMaterial({color:0xe3e7ec,roughness:.7,metalness:.3});
+const glass=new THREE.MeshPhysicalMaterial({color:0x9fdcff,transparent:true,opacity:.6,roughness:.05,metalness:0,clearcoat:1});
+const ledM=new THREE.MeshStandardMaterial({color:0xff5a4a,emissive:0xff2a2a,emissiveIntensity:1.6});
+const iron=new THREE.MeshStandardMaterial({color:0x3a3d44,metalness:.7,roughness:.7});
+
+const sub=new THREE.Group();scene.add(sub);
+const pick=[];
+function add(mesh,id){mesh.userData.id=id;sub.add(mesh);pick.push(mesh);return mesh;}
+
+// casco
+const hull=new THREE.Mesh(new THREE.CapsuleGeometry(0.45,2.3,10,32),ti);hull.rotation.z=Math.PI/2;add(hull,'casco');
+// anéis do casco
+for(const x of [-0.9,0,0.9]){const r=new THREE.Mesh(new THREE.TorusGeometry(0.455,0.025,10,48),steel);r.rotation.y=Math.PI/2;r.position.x=x;add(r,'casco');}
+// janela: anel + vidro cônico
+const ring=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.035,12,40),steel);ring.rotation.y=Math.PI/2;ring.position.x=1.6;add(ring,'janela');
+const win=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.06,0.12,32),glass);win.rotation.z=-Math.PI/2;win.position.x=1.62;add(win,'janela');
+// flutuador
+const fl=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.34,0.76),foam);fl.position.y=0.6;add(fl,'flutuador');
+const fl2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.1,0.62),foam);fl2.position.y=0.82;add(fl2,'flutuador');
+// baterias
+for(const z of [-0.3,0.3]){const b=new THREE.Mesh(new THREE.CapsuleGeometry(0.16,1.1,6,20),oil);b.rotation.z=Math.PI/2;b.position.set(0,-0.5,z);add(b,'baterias');}
+// propulsores
+function thruster(x,y,z,vertical){const g=new THREE.Group();const duct=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.045,12,40),dark);const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.14,16),steel);hub.rotation.x=Math.PI/2;
+  const blades=new THREE.Group();for(let i=0;i<3;i++){const bl=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.34,0.08),steel);bl.rotation.z=i*Math.PI*2/3;bl.rotation.y=.6;blades.add(bl);}g.add(duct,hub,blades);g.userData.blades=blades;
+  if(vertical){g.rotation.x=Math.PI/2;}else{g.rotation.y=Math.PI/2;}g.position.set(x,y,z);
+  g.traverse(m=>{if(m.isMesh){m.userData.id='propulsores';pick.push(m);}});sub.add(g);return g;}
+const thr=[thruster(-1.55,0.05,0.62,false),thruster(-1.55,0.05,-0.62,false),thruster(0.85,1.0,0,true),thruster(-0.85,1.0,0,true)];
+// suportes dos propulsores traseiros
+for(const z of [-0.62,0.62]){const s=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.05,0.05),steel);s.position.set(-1.35,0.05,z/2);add(s,'propulsores');}
+// sensores CTD
+const mastBase=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.5,16),steel);mastBase.position.set(0.3,1.1,0);add(mastBase,'sensores');
+const ctd=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.26,16),new THREE.MeshStandardMaterial({color:0x3fc7b0,roughness:.4,metalness:.4}));ctd.position.set(0.3,1.4,0);add(ctd,'sensores');
+// ânodos
+for(const z of [-0.5,0.5]){const a=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.1,0.08),zinc);a.position.set(-0.6,-0.1,z);add(a,'anodo');}
+// câmera e luzes
+const cam=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.14,0.16),dark);cam.position.set(1.58,-0.3,0);add(cam,'camera');
+const lens=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.06,20),glass);lens.rotation.z=-Math.PI/2;lens.position.set(1.7,-0.3,0);add(lens,'camera');
+const leds=[];for(const z of [-0.26,0.26]){const l=new THREE.Mesh(new THREE.SphereGeometry(0.045,16,12),ledM);l.position.set(1.6,-0.3,z);add(l,'camera');leds.push(l);}
+// garrafas de coleta
+for(const x of [0.05,0.45]){const g=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.065,0.7,20),new THREE.MeshStandardMaterial({color:0xb9c3cc,metalness:.2,roughness:.5}));g.position.set(x,-0.15,0.66);add(g,'garrafas');
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.06,20),dark);cap.position.set(x,0.22,0.66);add(cap,'garrafas');}
+// lastro
+for(const x of [-0.3,0.3]){const w=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.16,0.3),iron);w.position.set(x,-0.78,0);add(w,'lastro');}
+// treliça (esponja-de-vidro): grade + diagonais duplas
+const cyl=new THREE.CylinderGeometry(0.64,0.64,3.0,14,6,true);
+const wf=new THREE.LineSegments(new THREE.WireframeGeometry(cyl),new THREE.LineBasicMaterial({color:0xcfe8ff,transparent:true,opacity:.55}));
+wf.rotation.z=Math.PI/2;sub.add(wf);
+const wf2=wf.clone();wf2.scale.z=-1;sub.add(wf2);
+const cage=new THREE.Mesh(cyl,new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}));cage.rotation.z=Math.PI/2;cage.userData.id='trelica';sub.add(cage);pick.push(cage);
+// patas
+for(const x of [-1.0,1.0])for(const z of [-0.5,0.5]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.6,10),steel);leg.position.set(x,-0.75,z*1.15);leg.rotation.x=z>0?-0.35:0.35;add(leg,'patas');
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,0.03,20),dark);pad.position.set(x,-1.05,z*1.35);add(pad,'patas');}
+
+// neve marinha
+const N=1400,pos=new Float32Array(N*3);for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*16;pos[i*3+1]=(Math.random()-.5)*10;pos[i*3+2]=(Math.random()-.5)*16;}
+const snowG=new THREE.BufferGeometry();snowG.setAttribute('position',new THREE.BufferAttribute(pos,3));
+const snow=new THREE.Points(snowG,new THREE.PointsMaterial({color:0xbfe3ff,size:0.025,transparent:true,opacity:.55}));scene.add(snow);
+// fundo do mar
+const floorM=new THREE.MeshStandardMaterial({color:0x14222c,roughness:1});const floor=new THREE.Mesh(new THREE.CircleGeometry(14,64),floorM);floor.rotation.x=-Math.PI/2;floor.position.y=-1.08;scene.add(floor);
+
+// ---------- UI ----------
+const list=document.getElementById('list'),tags=[];
+const sel={id:null};
+for(const c of COMP){
+  const b=document.createElement('button');b.innerHTML=`<span class="n">${c.n}</span><span>${c.name}</span>`;b.onclick=()=>select(c.id,true);b.dataset.id=c.id;list.appendChild(b);
+  const t=document.createElement('div');t.className='tag';t.textContent=c.n;t.setAttribute('role','button');t.setAttribute('aria-label',c.name);t.onclick=()=>select(c.id,true);document.body.appendChild(t);
+  tags.push({el:t,v:new THREE.Vector3(...c.pos),c});
+}
+const chipName={fis:'Física',bio:'Biologia',qui:'Química'};
+function select(id,focus){
+  sel.id=id;const c=COMP.find(x=>x.id===id);
+  document.getElementById('card-chips').innerHTML=c.areas.map(a=>`<span class="chip ${a}">${chipName[a]}</span>`).join('');
+  document.getElementById('card-h').textContent=`${c.n}. ${c.name}`;
+  document.getElementById('card-p').textContent=c.desc;
+  document.getElementById('card-dec').innerHTML=c.dec;
+  for(const b of list.querySelectorAll('button'))b.classList.toggle('on',b.dataset.id===id);
+  for(const t of tags)t.el.classList.toggle('on',t.c.id===id);
+  if(focus){target.copy(new THREE.Vector3(...c.pos));focusing=1;controls.autoRotate=false;}
+}
+const target=new THREE.Vector3();let focusing=0;
+// raycast
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let down=null;
+canvas.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY]});
+canvas.addEventListener('pointerup',e=>{if(!down)return;const d=Math.hypot(e.clientX-down[0],e.clientY-down[1]);down=null;if(d>6)return;
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(pick,false);if(hits.length)select(hits[0].object.userData.id,false);});
+let idle=0;controls.addEventListener('start',()=>{controls.autoRotate=false;idle=0;});
+
+// profundímetro
+const dEl=document.getElementById('depth');
+const fmt=(n,d=0)=>n.toLocaleString('pt-BR',{maximumFractionDigits:d,minimumFractionDigits:d});
+const surface=new THREE.Color(0x0b3a5a),abyss=new THREE.Color(0x02060c),cur=new THREE.Color();
+function depthUpdate(){
+  const h=+dEl.value,P=P0+RHO*G*h,dp=P-P0,A=Math.PI*R_WIN*R_WIN,F=dp*A;
+  document.getElementById('d-val').textContent=fmt(h);
+  document.getElementById('p-atm').textContent=fmt(P/1e5,0)+' atm';
+  const exp=Math.floor(Math.log10(P));document.getElementById('p-pa').textContent=fmt(P/10**exp,2)+' × 10'+String(exp).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d])+' Pa';
+  document.getElementById('f-win').textContent=fmt(F/1000,0)+' kN';
+  document.getElementById('f-kg').textContent=F/G>=1000?fmt(F/G/1000,1)+' t':fmt(F/G)+' kg';
+  const light=Math.max(0,1-h/1000);const z=h<200?'epipelágica (luz)':h<1000?'mesopelágica (penumbra)':'batipelágica (escuridão)';
+  document.getElementById('zone').textContent=`Zona ${z} · luz solar: ${fmt(light*100)}%`;
+  document.getElementById('zone-s').textContent=h===0?'superfície':h>=4000?'fundo · 4.000 m':'descendo';
+  const k=Math.min(1,h/1200);cur.copy(surface).lerp(abyss,Math.pow(k,.6));scene.fog.color.copy(cur);renderer.setClearColor(cur);
+  sun.intensity=2.2*light+0.08;hemi.intensity=1.1*light+0.5;fill.intensity=0.6*light+0.25;work.intensity=1.6+ (1-light)*2.2;
+  const red=Math.min(1,Math.max(0,(h-300)/700));red1.intensity=red2.intensity=red*3.2;ledM.emissiveIntensity=0.4+red*2.4;
+  floorM.color.setHex(h>=3800?0x1a1612:0x14222c);
+}
+dEl.addEventListener('input',depthUpdate);depthUpdate();
+// ida ao fundo na abertura
+if(!reduce){let v=0;const dive=setInterval(()=>{v+=55;if(v>=4000){v=4000;clearInterval(dive);}dEl.value=v;depthUpdate();},16);}
+else{dEl.value=4000;depthUpdate();}
+
+// ---------- loop ----------
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+const tmp=new THREE.Vector3();let t0=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-t0)/1000);t0=now;
+  if(focusing>0){controls.target.lerp(target,.08);focusing-=dt;if(focusing<=0)controls.target.copy(target);}
+  if(!reduce){for(const g of thr)g.userData.blades.rotation.z+=dt*4;snow.rotation.y+=dt*.01;const p=snow.geometry.attributes.position;for(let i=0;i<N;i++){p.array[i*3+1]-=dt*.08;if(p.array[i*3+1]<-5)p.array[i*3+1]=5;}p.needsUpdate=true;
+    sub.position.y=Math.sin(now/1800)*0.03;idle+=dt;if(idle>12&&!controls.autoRotate&&!sel.id)controls.autoRotate=true;}
+  controls.update();
+  for(const t of tags){tmp.copy(t.v).add(sub.position).project(camera);const vis=tmp.z<1;t.el.style.left=((tmp.x+1)/2*innerWidth)+'px';t.el.style.top=((1-tmp.y)/2*innerHeight)+'px';
+    const d=camera.position.distanceTo(t.v);t.el.style.opacity=vis?(t.c.id===sel.id?1:Math.max(.35,1-(d-3)/9)):0;t.el.style.pointerEvents=vis?'auto':'none';}
+  renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+if(location.hash){const id=location.hash.slice(1);if(COMP.some(c=>c.id===id))select(id,true);}
+</script>
+</body></html>
