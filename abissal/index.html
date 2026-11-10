@@ -94,7 +94,7 @@ body.holo .scan{opacity:1}
 <div class="scan"></div>
 <div class="ui modes" role="tablist"><button id="m-normal" class="on" role="tab">Normal</button><button id="m-holo" role="tab">Holograma</button><button id="m-dive" role="tab">Mergulho</button><span class="sep"></span><button id="b-explode">Explodir</button><button id="b-play">▶ Mergulhar</button></div>
 <div class="ui toast" id="toast"></div>
-<div class="ui top"><h1>Missão Abissal</h1><div class="sub">Submersível não tripulado · 4.000 m · modelo legendado</div></div>
+<div class="ui top"><h1>Missão Abissal</h1><div class="sub">Nadir Engenharia Oceânica · submersível não tripulado · 4.000 m · modelo legendado</div></div>
 
 <div class="ui gauge">
   <label for="depth"><span>Profundidade</span><span id="zone-s">superfície</span></label>
@@ -135,40 +135,40 @@ let mode='normal',dropped=0;
 const COMP=[
  {id:'casco',n:1,name:'Casco · compartimento de pressão',areas:['fis'],pos:[0.2,0.1,0.5],
   desc:'Cilindro de liga de titânio com tampas hemisféricas, selado a 1 atm. Só o que precisa de ar seco fica aqui: eletrônica e câmera. A forma redonda distribui a pressão sem cantos que concentram esforço.',
-  dec:'<b>Decisão 1 · forma e material.</b> A 4.000 m a pressão total é <span class="num">4,13 × 10⁷ Pa ≈ 413 atm</span>. Esfera e cilindro de parede grossa resistem melhor que caixas com arestas. Coeficiente de segurança: o casco é projetado para mais que 4.000 m.'},
+  dec:'<b>Decisão 1 · forma e material.</b> A 4.000 m a pressão total é <span class="num">4,01 × 10⁷ Pa ≈ 401 atm</span> (400 atm da coluna de água + 1 atm da superfície). Esfera e cilindro de parede grossa resistem melhor que caixas com arestas. Coeficiente de segurança: o casco é projetado para mais que 4.000 m.'},
  {id:'janela',n:2,name:'Janela de observação',areas:['fis'],pos:[1.72,0.05,0],
   desc:'Vigia circular de 10 cm de diâmetro em acrílico espesso, em forma de cone, encaixada no casco. É o ponto mais frágil do compartimento, por isso é pequena.',
-  dec:'<b>Força líquida na janela a 4.000 m:</b> ΔP = 4,12 × 10⁷ Pa × área 7,85 × 10⁻³ m² = <span class="num">≈ 3,2 × 10⁵ N</span>, o peso de <span class="num">≈ 32 toneladas</span>. Por isso ela é pequena e cônica: quanto mais pressão, mais ela se aperta no encaixe.'},
+  dec:'<b>Decisão 1 · força líquida na janela:</b> ΔP = 400 atm = 4 × 10⁷ Pa × área 2,5π × 10⁻³ m² = <span class="num">π × 10⁵ N ≈ 3,1 × 10⁵ N</span>, o peso de <span class="num">≈ 31 toneladas</span>. Por isso ela é pequena e cônica: quanto mais pressão, mais ela se aperta no encaixe.'},
  {id:'flutuador',n:3,name:'Flutuador de espuma sintética',areas:['fis'],pos:[0,0.78,0],
   desc:'Bloco de espuma sintética (microesferas de vidro em resina), densidade 600 kg/m³. Não esmaga sob pressão como a espuma comum, porque não tem bolhas de ar grandes.',
-  dec:'<b>Decisão 2 · flutuabilidade neutra.</b> Sem bateria o veículo afunda (850 kg contra 824 kg de água deslocada). Com a bateria de lítio, são <span class="num">0,12 m³ de espuma (≈ 72 kg)</span> para ficar neutro. Com chumbo-ácido seriam 0,32 m³: outro motivo para o lítio.'},
+  dec:'<b>Flutuabilidade neutra (refeita com a bateria).</b> Sem bateria o veículo afunda: 850 kg em 0,8 m³ dá 1.062,5 kg/m³, mais que a água (1.030). Só com a espuma: 0,06 m³ (36 kg). Com a bateria de lítio de 53,33 kg: <span class="num">0,122 m³ de espuma (≈ 73 kg)</span>. Com chumbo-ácido seriam uns 0,32 m³: outro motivo para o lítio.'},
  {id:'baterias',n:4,name:'Baterias de íons de lítio',areas:['qui','fis'],pos:[0,-0.5,0.32],
   desc:'Dois cilindros cheios de óleo com as células dentro. O óleo transmite a pressão da água para dentro, então a caixa não precisa ser blindada: é compensada em pressão.',
-  dec:'<b>Decisão 3 · energia.</b> 800 W × 8 h = <span class="num">6,4 kWh</span>; com 25% de margem, <span class="num">8,0 kWh</span>. Lítio a 150 Wh/kg: <span class="num">53 kg e 13 células em série</span> para 48 V. Chumbo-ácido pesaria 229 kg e precisaria de 24 células. Nada de baterias que dependem de oxigênio do ar: não há ar no fundo.'},
+  dec:'<b>Decisões 2 e 3 · compartimento de óleo e bateria.</b> 800 W × 8 h = <span class="num">6,4 kWh</span>; com 25% de margem, <span class="num">8,0 kWh</span>. Lítio a 150 Wh/kg: <span class="num">53 kg e 13 células em série</span> para 48 V. Chumbo-ácido pesaria 229 kg e precisaria de 24 células. Nada de baterias que dependem de oxigênio do ar: não há ar no fundo.'},
  {id:'propulsores',n:5,name:'Propulsores em duto',areas:['fis','bio'],pos:[-1.55,0.05,0.62],
   desc:'Quatro hélices em duto: duas na traseira (avanço e giro) e duas verticais (subir, descer e manter posição). Os motores são cheios de óleo, também compensados em pressão.',
-  dec:'<b>Decisão biomimética · polvo-dumbo.</b> O <i>Grimpoteuthis</i> nada com nadadeiras lentas em vez de jato: gasta pouco e faz pouco barulho. Por isso os propulsores giram devagar e com pás largas. Limite da analogia: hélice ainda faz ruído; nadadeira de verdade não.'},
+  dec:'<b>Decisão 5 · biomimética · polvo-dumbo.</b> O <i>Grimpoteuthis</i> plana batendo as nadadeiras devagar: tem controle fino de direção com pouco gasto e pouco barulho. Por isso os propulsores giram devagar, com pás largas, e servem para manobrar em flutuação neutra. Limite da analogia: a nadadeira é flexível e não dá para replicar; a hélice ainda vibra.'},
  {id:'sensores',n:6,name:'Sensores (CTD)',areas:['fis','qui'],pos:[0.3,1.25,0],
   desc:'Sonda que mede condutividade (salinidade), temperatura e pressão. A pressão vira a profundidade mostrada no painel; a temperatura no fundo fica entre 1 e 4 °C.',
   dec:'<b>Dado real.</b> A pressão cresce ≈ 1 atm a cada 10 m. O sensor de pressão é a referência para o controle de profundidade e para soltar o lastro na hora certa.'},
  {id:'anodo',n:7,name:'Ânodos de sacrifício (zinco)',areas:['qui'],pos:[-0.6,-0.1,0.52],
   desc:'Blocos de zinco parafusados nas partes de aço. A água do mar (≈ 35 g de sal por kg) é um eletrólito: o metal mais reativo se corrói primeiro e protege o resto.',
-  dec:'<b>Decisão 4 · corrosão.</b> E°(Zn²⁺/Zn) = −0,76 V é mais negativo que E°(Fe²⁺/Fe) = −0,44 V. O zinco é o ânodo e se oxida (Zn → Zn²⁺ + 2e⁻); o ferro vira cátodo e fica protegido. Trocamos o bloco de zinco, não a estrutura.'},
- {id:'camera',n:8,name:'Câmera e iluminação vermelha',areas:['bio'],pos:[1.6,-0.3,0],
-  desc:'Câmera 4K com dois faróis de LED. A luz é vermelha e fraca por padrão; a branca só liga para a foto. Nada de luz solar chega a 4.000 m.',
-  dec:'<b>Decisão biomimética · peixe-pescador.</b> O <i>Melanocetus</i> usa uma isca luminosa fraca porque no escuro pouca luz já basta. Animais do fundo quase não enxergam vermelho, então o veículo observa sem cegá-los nem espantá-los. Limite: luz vermelha reduz o alcance da câmera.'},
+  dec:'<b>Decisão 4 · corrosão (ânodo de sacrifício).</b> E°(Zn²⁺/Zn) = −0,76 V é mais negativo que E°(Fe²⁺/Fe) = −0,44 V. O zinco é o ânodo e se oxida (Zn → Zn²⁺ + 2e⁻); o ferro vira cátodo e fica protegido. Trocamos o bloco de zinco, não a estrutura.'},
+ {id:'camera',n:8,name:'Câmera e LEDs externos',areas:['bio'],pos:[1.6,-0.3,0],
+  desc:'Câmera 4K com LEDs externos direcionáveis, de intensidade ajustável. Vermelhos e fracos por padrão; a luz branca só liga na hora do registro. Nada de luz solar chega a 4.000 m.',
+  dec:'<b>Decisão 6 · biomimética · peixe-diabo-negro.</b> O <i>Melanocetus johnsonii</i> ilumina só o que está à frente, com a isca bioluminescente fraca: no escuro total pouca luz basta. Copiamos em LEDs direcionáveis e ajustáveis, vermelhos por padrão porque os animais do fundo quase não enxergam vermelho. Limite: a bioluminescência é química e não gasta bateria; o LED gasta, e a carcaça precisa aguentar 401 atm.'},
  {id:'garrafas',n:9,name:'Garrafas de coleta de água',areas:['qui'],pos:[0.25,-0.15,0.7],
   desc:'Duas garrafas tipo Niskin, abertas nas duas pontas durante a descida e fechadas por gatilho no fundo. Trazem água para medir salinidade e composição no laboratório.',
   dec:'Ficam abertas na descida para a pressão interna e externa se igualarem; se fossem fechadas na superfície, seriam esmagadas como o compartimento de 1 atm.'},
  {id:'lastro',n:10,name:'Lastro descartável',areas:['fis'],pos:[0,-0.82,0],
   desc:'Pesos de ferro presos por eletroímãs. Com eles o veículo fica mais pesado que a água e desce sozinho; no fundo, solta metade e fica neutro; para subir, solta o resto.',
-  dec:'<b>Princípio de Arquimedes.</b> O empuxo é o peso da água deslocada (1.030 kg/m³ × volume × g). Descer e subir sem gastar bateria: só mudando o peso, não o empuxo.'},
+  dec:'<b>Decisão 8 · lastro descartável (Arquimedes).</b> O empuxo é o peso da água deslocada (1.030 kg/m³ × volume × g). Descer e subir sem gastar bateria: só mudando o peso, não o empuxo.'},
  {id:'trelica',n:11,name:'Treliça externa (esponja-de-vidro)',areas:['bio','fis'],pos:[0.9,0.55,-0.6],
   desc:'Gaiola de tubos de titânio em grade quadrada com duas diagonais cruzadas, que protege o casco e sustenta os equipamentos externos.',
-  dec:'<b>Decisão biomimética · <i>Euplectella aspergillum</i>.</b> O esqueleto de sílica da esponja tem grade reforçada por diagonais duplas; em testes, resiste mais de 20% melhor à flambagem que a treliça comum, com o mesmo material (Fernandes et al., 2020). Limite: a esponja vive a 100–1.000 m e sua sílica é frágil; copiamos a geometria, não o material.'},
- {id:'patas',n:12,name:'Patas de pouso',areas:['bio'],pos:[-1.0,-0.9,0.55],
+  dec:'<b>Decisão 7 · biomimética (extra) · esponja-de-vidro <i>Euplectella aspergillum</i>.</b> O esqueleto de sílica da esponja tem grade reforçada por diagonais duplas; em testes, resiste mais de 20% melhor à flambagem que a treliça comum, com o mesmo material (Fernandes et al., 2021). Limite: a esponja vive a 100–1.000 m e sua sílica é frágil; copiamos a geometria, não o material.'},
+ {id:'patas',n:12,name:'Patas de pouso',areas:['fis','bio'],pos:[-1.0,-0.9,0.55],
   desc:'Quatro hastes finas com sapatas largas, que mantêm o corpo do veículo acima da lama do fundo.',
-  dec:'<b>Decisão biomimética · pepino-do-mar.</b> O <i>Scotoplanes</i> anda sobre pés ambulacrais longos como pernas de pau, com o corpo suspenso acima do sedimento. Assim o veículo pousa sem levantar a nuvem de lama que estragaria a filmagem. Limite: nossas patas não andam.'}
+  dec:'<b>Pouso sem levantar sedimento.</b> Com as patas o veículo apoia o peso no fundo e desliga os propulsores durante a observação: menos barulho, menos vibração e nenhuma nuvem de lama na frente da câmera. É parte da resposta à pergunta de luz e ruído da Biologia.'}
 ];
 
 // ---------- cena ----------
@@ -399,4 +399,5 @@ function frame(now){
 requestAnimationFrame(frame);
 if(location.hash){const id=location.hash.slice(1);if(COMP.some(c=>c.id===id))select(id,true);}
 </script>
+
 </body></html>
