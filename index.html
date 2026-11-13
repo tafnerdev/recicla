@@ -243,6 +243,17 @@ body.isfs{padding:0}.isfs .stage{border-radius:0;box-shadow:none}.isfs .hint,.is
 #vplay span{width:140px;height:140px;border-radius:50%;background:var(--leaf);box-shadow:0 0 60px rgba(139,209,124,.6);position:relative}
 #vplay span::after{content:"";position:absolute;left:56px;top:40px;border-left:46px solid #0B241E;border-top:30px solid transparent;border-bottom:30px solid transparent}
 #vplay[hidden]{display:none}
+
+/* modo estável para a TV: nada fica animando sem parar no slide 8, sem filtros de desfoque nas entradas, sem textura por cima do palco */
+.wtube circle{display:none!important;animation:none!important}
+.js .slide .wtube path,.js .slide.on .wtube path{animation:none!important;stroke-dasharray:none!important;stroke-dashoffset:0!important}
+.js .slide [data-in],.js .slide.on [data-in]{filter:none!important;transition-property:opacity,transform!important}
+.stage::after{display:none!important}
+.glow{animation:none!important}
+.js .slide.on .card .shine{animation:none!important}.card .shine{display:none!important}
+.chip{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(7,27,22,.92)!important}
+.stage{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.slide:not(.on) .lit,.slide:not(.on) .rider,.slide:not(.on) .mixer{animation:none!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.js .slide [data-in],.js .slide [data-pop],.js tbody tr,.js .sticker{opacity:1!important;transform:none!important;filter:none!important}.js .cover h1 .ln span{transform:none!important}.js .logo .word,.js .logo .fall{opacity:1!important}}
 </style>
 
